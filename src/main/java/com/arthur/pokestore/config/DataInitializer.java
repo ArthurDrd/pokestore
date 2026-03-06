@@ -36,6 +36,7 @@ public class DataInitializer implements ApplicationRunner {
             }
         }
 
+        // create a development test admin user
         if (!userRepository.existsByUsername("admin")) {
             Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
                     .orElseThrow(() -> new RuntimeException("Error : The ADMIN role has not been initialized."));
