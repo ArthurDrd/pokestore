@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.arthur.pokestore.entities.RefreshToken;
+import com.arthur.pokestore.exception.TokenRefreshException;
 import com.arthur.pokestore.payload.request.TokenRefreshRequest;
 import com.arthur.pokestore.payload.response.MessageResponse;
 import com.arthur.pokestore.payload.response.TokenRefreshResponse;
@@ -13,6 +14,7 @@ import com.arthur.pokestore.security.services.RefreshTokenService;
 import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,6 +38,8 @@ import com.arthur.pokestore.entities.ERole;
 import com.arthur.pokestore.entities.Role;
 import com.arthur.pokestore.entities.User;
 import com.arthur.pokestore.payload.request.SignupRequest;
+
+import static org.springframework.security.core.context.SecurityContextHolder.getContext;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -64,7 +68,7 @@ public class AuthController {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        getContext().setAuthentication(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         String jwt = jwtUtils.generateJwtToken(authentication);
@@ -94,7 +98,7 @@ public class AuthController {
                     String token = jwtUtils.generateTokenFromUsername(user.getUsername());
                     return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
                 })
-                .orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
+                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken, "Refresh token is not in database!"));
     }
 
     @PostMapping("/register")
@@ -155,9 +159,20 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logoutUser() {
-        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long userId = userDetails.getId();
-        refreshTokenService.deleteByUserId(userId);
-        return ResponseEntity.ok(new MessageResponse("Déconnexion réussie !"));
+        Authentication authentication = getContext().getAuthentication();
+
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetailsImpl) {
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            Long userId = userDetails.getId();
+            
+            refreshTokenService.deleteByUserId(userId);
+
+            SecurityContextHolder.clearContext();
+
+            return ResponseEntity.ok(new MessageResponse("User disconnected successfully and tokens revoked."));
+        }
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new MessageResponse("Error: No user currently logged in."));
     }
 }
