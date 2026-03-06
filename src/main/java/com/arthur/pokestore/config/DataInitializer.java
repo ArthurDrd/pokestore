@@ -29,9 +29,12 @@ public class DataInitializer implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) throws Exception {
-        initRole(ERole.ROLE_USER);
-        initRole(ERole.ROLE_MODERATOR);
-        initRole(ERole.ROLE_ADMIN);
+
+        for (ERole roleName : ERole.values()) {
+            if (roleRepository.findByName(roleName).isEmpty()) {
+                roleRepository.save(new Role(roleName));
+            }
+        }
 
         if (!userRepository.existsByUsername("admin")) {
             Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
@@ -40,12 +43,6 @@ public class DataInitializer implements ApplicationRunner {
             User admin = new User("admin", "admin@poke.com", passwordEncoder.encode("admin123"));
             admin.setRoles(Set.of(adminRole));
             userRepository.save(admin);
-        }
-    }
-
-    private void initRole(ERole name) {
-        if (roleRepository.findByName(name).isEmpty()) {
-            roleRepository.save(new Role(name));
         }
     }
 }
