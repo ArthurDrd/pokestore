@@ -164,7 +164,7 @@ public class AuthController {
         if (authentication != null && authentication.getPrincipal() instanceof UserDetailsImpl) {
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             Long userId = userDetails.getId();
-            
+
             refreshTokenService.deleteByUserId(userId);
 
             SecurityContextHolder.clearContext();
