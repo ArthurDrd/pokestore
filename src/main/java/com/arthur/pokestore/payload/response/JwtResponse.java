@@ -1,6 +1,5 @@
 package com.arthur.pokestore.payload.response;
 
-import com.arthur.pokestore.entities.RefreshToken;
 import lombok.Getter;
 import lombok.Setter;
 

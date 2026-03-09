@@ -1,5 +1,6 @@
 package com.arthur.pokestore.exception;
 
+import com.arthur.pokestore.repositories.PokeballRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -39,7 +40,7 @@ public class GlobalExceptionHandler {
         return ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
-                .error("Validation error")
+                .error("Validation Error")
                 .message("The data sent is incorrect")
                 .path(request.getDescription(false))
                 .validationErrors(errors)
@@ -53,7 +54,20 @@ public class GlobalExceptionHandler {
         return ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.FORBIDDEN.value())
-                .error("Refresh Token error")
+                .error("Refresh Token Error")
+                .message(ex.getMessage())
+                .path(request.getDescription(false))
+                .build();
+    }
+
+    // Pokeball error
+    @ExceptionHandler(PokeballException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handlePokeballException(PokeballException ex, WebRequest request) {
+        return ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.FORBIDDEN.value())
+                .error("Pokeball Error")
                 .message(ex.getMessage())
                 .path(request.getDescription(false))
                 .build();
