@@ -1,5 +1,6 @@
 package com.arthur.pokestore.controllers;
 
+import com.arthur.pokestore.config.PokeballMapper;
 import com.arthur.pokestore.entities.Pokeball;
 import com.arthur.pokestore.payload.request.PokeballCreateRequest;
 import com.arthur.pokestore.payload.request.PokeballUpdateRequest;
@@ -31,9 +32,12 @@ public class PokeballController {
     @Autowired
     private PokeballService pokeballService;
 
+    @Autowired
+    private PokeballMapper pokeballMapper;
+
     @GetMapping
-    public List<Pokeball> getAllPokeballs() {
-        return pokeballRepository.findAll();
+    public List<PokeballResponse> getAllPokeballs() {
+        return pokeballMapper.toResponseList(pokeballRepository.findAll());
     }
 
     @GetMapping("/{id}")

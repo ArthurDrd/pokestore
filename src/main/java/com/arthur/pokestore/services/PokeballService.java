@@ -1,5 +1,6 @@
 package com.arthur.pokestore.services;
 
+import com.arthur.pokestore.config.PokeballMapper;
 import com.arthur.pokestore.entities.Pokeball;
 import com.arthur.pokestore.exception.PokeballException;
 import com.arthur.pokestore.payload.request.PokeballCreateRequest;
@@ -14,6 +15,9 @@ public class PokeballService {
 
     @Autowired
     PokeballRepository pokeballRepository;
+
+    @Autowired
+    private PokeballMapper pokeballMapper;
 
     @Transactional
     public Pokeball findPokeballById(Long id) {
@@ -44,16 +48,7 @@ public class PokeballService {
         Pokeball pokeball = pokeballRepository.findById(id)
                 .orElseThrow(()-> new PokeballException(id, "Pokeball not found"));
 
-        if (request.getName() != null && !request.getName().equals(pokeball.getName())) {
-            if (pokeballRepository.existsByName(request.getName())) {
-                throw new PokeballException(id, "Name '" + request.getName() + "' is already taken!");
-            }
-            pokeball.setName(request.getName());
-        }
-
-        if (request.getPrice() != null) pokeball.setPrice(request.getPrice());
-        if (request.getDescription() != null) pokeball.setDescription(request.getDescription());
-        if (request.getQuantity() != null) pokeball.setQuantity(request.getQuantity());
+        pokeballMapper.updatePokeballFromDto(request, pokeball);
 
         pokeballRepository.save(pokeball);
     }
