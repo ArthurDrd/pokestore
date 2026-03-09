@@ -4,6 +4,7 @@ import com.arthur.pokestore.entities.Pokeball;
 import com.arthur.pokestore.payload.request.PokeballCreateRequest;
 import com.arthur.pokestore.payload.request.PokeballUpdateRequest;
 import com.arthur.pokestore.payload.response.MessageResponse;
+import com.arthur.pokestore.payload.response.PokeballResponse;
 import com.arthur.pokestore.repositories.PokeballRepository;
 import com.arthur.pokestore.services.PokeballService;
 import jakarta.validation.Valid;
@@ -35,6 +36,17 @@ public class PokeballController {
         return pokeballRepository.findAll();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getPokeballById(@PathVariable Long id) {
+        Pokeball pokeball = pokeballService.findPokeballById(id);
+        return ResponseEntity.ok(new PokeballResponse(
+                pokeball.getId(),
+                pokeball.getName(),
+                pokeball.getPrice(),
+                pokeball.getDescription(),
+                pokeball.getQuantity()));
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> addPokeball(@Valid @RequestBody PokeballCreateRequest request){
@@ -43,11 +55,19 @@ public class PokeballController {
         return ResponseEntity.ok(new MessageResponse("Pokeball added successfully!"));
     }
 
-    @PatchMapping
+    @PatchMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updatePokeball(@Valid @RequestBody PokeballUpdateRequest request){
+    public ResponseEntity<?> updatePokeball(@PathVariable Long id, @Valid @RequestBody PokeballUpdateRequest request){
 
-        pokeballService.updatePokeball(request);
+        pokeballService.updatePokeball(id, request);
         return ResponseEntity.ok(new MessageResponse("Pokeball updated successfully!"));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deletePokeball(@PathVariable Long id){
+
+        pokeballService.deletePokeball(id);
+        return ResponseEntity.ok(new MessageResponse("Pokeball deleted successfully!"));
     }
 }
